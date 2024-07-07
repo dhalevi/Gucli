@@ -4,7 +4,7 @@
 # pylint: disable-msg=W0703
 
 """
-gucli.pyw: Provide a GUI for command line tools.
+gucli.pyw: Provide a GUI for any command line tool.
 
 Read command from an ini file (named after this file), parse the ini file
 and prepare a GUI command line options. run the sub-command using these options.
@@ -49,9 +49,9 @@ DEFAULT_INI_FILE = """
 ; The root of the app sets the application general setup (command line, title etc.)
 ; The section name MUST be 'root'
 [root]
-; command is mandatory
+; 'command' key is mandatory.
 command=python -m json.tool
-; about is optional, but please provide something meaningful
+; 'about' key is optional, but please provide something meaningful.
 ; Gooey supports about 4 lines of description. indent the other lines.
 about=A json pretty print tool. It Can also validate integrity.
     This can be a multi-line help description
@@ -59,19 +59,27 @@ about=A json pretty print tool. It Can also validate integrity.
 ; Optional: help flag: the command help flag. usually '--help' or '-h'.
 ; it will be used for executing the command's own help message
 help_flag=--help
+
+; Arguments section:
+;
 ; Each command line parameter has en entry (spawned by order)
-; flag: the flag to use. optional. (no flag for positional arguments)
+; 'flag': the flag to use. optional. (no 'flag' for positional arguments)
 ; positional arguments are required parameters, flags are optional.
-; type: flag type, and argument hint.
-; The supported types are: boolean (default), string, integer,
-;                          file (read), dir (read), save (file name),
-;                          choice (require 'choices' option)
-; help: A help string, new lines can be used with indentation
+; 'type' key: flag type, and argument hint.
+; The supported types are:
+;       boolean (default),
+;       string, integer,
+;       file (read),
+;       dir (read),
+;       save (file name),
+;       choice (require 'choices' option)
+; 'help': A help string, new lines can be used with indentation.
 
+; Example: full argument qualification.
+; The section name is used as the argument title (for the GUI)
+; 'mutex' is used to group mutually exclusive flags, using common 'mutex' key
+; Look for other 'mutex' keys to get the idea.
 
-; Example: full argument qualification
-; the section name is used as the argument title
-; group this with 'Tab' in a mutually exclusive group, using common mutex key
 [Indentation Width]
 flag=--indent
 type=string
@@ -100,7 +108,7 @@ choices=One, Two, Three
 flag=--sort-keys
 help=Sort the output of dictionaries alphabetically by key
 
-# Specify the boolean type explicitly
+# Specify the boolean type explicitly, group using 'mutex' key
 [Tab]
 flag=--tab
 type=boolean
@@ -120,7 +128,7 @@ help=Comact json, much less readable, shorter for serialization
 mutex=IndentSpaceOrTab
 
 
-; positional #1 (required, multiple file selection is enabled)
+; Positional, mandatory argument #1 (required, multiple file selection is enabled)
 ; Note that the "file" widget supports multiple file selection.
 ; the file names are give as a space separated string to the command.
 [Infile]
@@ -128,7 +136,7 @@ type=file
 help=Input file name (required)
 
 ; positional #2
-; the '--' default serves as 'no argument' here, so this argument is optional
+; The '--' default serves as 'no argument' here, so this argument becomes optional
 [Outfile]
 type=save
 help=Output file name. Optional. can be equal to Input File name
@@ -270,9 +278,7 @@ def run_command(cmd, timeout=None):
         cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
     ) as proc:
         for line in proc.stdout:
-            line = line.decode(
-                errors='replace' if (sys.version_info) < (3, 5) else 'backslashreplace'
-            ).rstrip()
+            line = line.decode(errors='backslashreplace').rstrip()
             print(line)
         retval = proc.wait(timeout)
         elapsed_time = time.monotonic() - start_time
